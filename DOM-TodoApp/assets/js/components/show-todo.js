@@ -1,48 +1,12 @@
+export const showTodo = (todoList, taskBox, filterStatus) => {
+  const result =
+    filterStatus === "all"
+      ? todoList
+      : todoList.filter((todoItem) => todoItem.status === filterStatus);
 
-
-import { showTodo } from './components/show-todo.js';
-import { uuid } from './uuid.js';
-
-const taskBox = document.querySelector('.task-box');
-const taskInput = document.querySelector('.task-input input');
-const filters = document.querySelectorAll('.filters button');
-const todos = JSON.parse(localStorage.getItem('todo-list')) ?? [];
-const clearAll = document.querySelector('.clear-btn');
-
-filters.forEach((btn) => {
-	btn.addEventListener('click', () => {
-		// handle ui/ux -> done
-		const buttonActive = document.querySelector('.filters button.active');
-		buttonActive.classList.remove('active');
-		btn.classList.add('active');
-		showTodo(todos, taskBox, btn.id);
-	});
-});
-
-// remove clear all
-clearAll.addEventListener('click', () => {
-	todos.splice(0, todos.length);
-	localStorage.setItem('todo-list', JSON.stringify(todos));
-	showTodo(todos, taskBox, 'all');
-});
-
-// create
-taskInput.addEventListener('keyup', (event) => {
-	const task = taskInput.value;
-
-	if (event.key === 'Enter') {
-		const newTask = {
-			id: uuid(),
-			name: task,
-			status: 'pending',
-		};
-		todos.push(newTask);
-		taskInput.value = '';
-		localStorage.setItem('todo-list', JSON.stringify(todos));
-
-		// get
-		const htmls = todos.map((todo, index) => {
-			return  `
+  // get
+  const htmls = result.map((todo, index) => {
+    return `
       <li class="task">
         <label for="checked">
           <input type="checkbox" id="checked">
@@ -67,7 +31,7 @@ taskInput.addEventListener('keyup', (event) => {
               </svg>
               <span>Edit</span>
             </li>
-            <li>
+            <li class="delete">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                 stroke="currentColor" class="size-6">
                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -78,17 +42,46 @@ taskInput.addEventListener('keyup', (event) => {
           </ul>
         </div>
       </li>
-  `;
-		});
+    `;
+  });
 
-		taskBox.innerHTML =
-			htmls.length > 0
-				? htmls.join(' ')
-				: `<p class="no-data">You don't have any task here</p>`;
-		taskBox.offsetHeight >= 300
-			? taskBox.classList.add('overflow')
-			: taskBox.classList.remove('overflow');
-	}
-});
+  taskBox.innerHTML =
+    htmls.length > 0
+      ? htmls.join(" ")
+      : `<p class="no-data">You don't have any task here</p>`;
+  taskBox.offsetHeight >= 300
+    ? taskBox.classList.add("overflow")
+    : taskBox.classList.remove("overflow");
 
-showTodo(todos, taskBox, 'all');
+  const todos = JSON.parse(localStorage.getItem("todo-list")) ?? [];
+  const btns = document.querySelectorAll(".settings button");
+  const taskMenus = document.querySelectorAll(".settings .task-menu");
+
+  btns.forEach((btn, index) => {
+    btn.onclick = () => {
+      if (taskMenus && taskMenus.length > 0) {
+        taskMenus[index].classList.add("show");
+
+        document.addEventListener("click", (event) => {
+          if (event.target.parentElement != btn) {
+            taskMenus[index].classList.remove("show");
+          }
+        });
+      }
+    };
+  });
+
+  const deleteBtns = document.querySelectorAll(".delete");
+  deleteBtns.forEach((btn, index) => {
+    btn.onclick = () => {
+      // Xóa phần tử khỏi danh sách
+      todoList.splice(index, 1);
+
+      // Lưu danh sách đã cập nhật vào localStorage
+      localStorage.setItem("todo-list", JSON.stringify(todoList));
+
+      // Hiển thị lại danh sách
+      showTodo(todoList, taskBox, filterStatus);
+    };
+  });
+};
